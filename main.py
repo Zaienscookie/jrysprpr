@@ -1,4 +1,4 @@
-"""jrysprpr v1.2.3 - 今日运势（丰富版）
+"""jrysprpr v1.2.4 - 今日运势（丰富版）
 按 用户ID + 日期 确定性生成：同一人同一天全群同步、结果固定，
 每天凌晨 0 点自动刷新，不同群友结果不同，数据持久化到 data.json。
 
@@ -146,6 +146,9 @@ DIMS = ["财运", "事业", "爱情", "健康"]
 KEEP_DAYS = 30   # 历史记录保留天数（统计用）
 MAX_REROLL = 3   # 每天转运次数上限
 
+# 首抽加权：吉及以上占 60%，压低分概率（顺序对应 LEVELS）
+SCORE_WEIGHTS = [10, 13, 16, 21, 16, 12, 8, 4]
+
 
 def _load():
     try:
@@ -181,7 +184,7 @@ def _bar(score: int, width: int = 10) -> str:
     return "█" * filled + "░" * (width - filled)
 
 
-@register("jrysprpr", "扎恩斯", "今日运势：多群同步/0点刷新/统计/排行/转运，数据持久化", "1.2.3")
+@register("jrysprpr", "扎恩斯", "今日运势：多群同步/0点刷新/统计/排行/转运，数据持久化", "1.2.4")
 class JrysPlugin(Star):
     def __init__(self, context: Context):
         super().__init__(context)
@@ -307,11 +310,11 @@ class JrysPlugin(Star):
              min_score: int | None = None, min_dims: dict | None = None,
              floor: int | None = None) -> dict:
         rng = random.Random(_seed(uid, today, salt))
-        # 转运只小幅上升：每次最多 +10 分（只升不降）；首抽从 0~100 抽
+        # 转运只小幅上升：每次最多 +10 分（只升不降）；首抽加权偏吉
         if min_score is not None:
             score = rng.randint(min_score, min(100, min_score + 10))
         else:
-            score = rng.randint(0, 100)
+            score = self._roll_score(rng)
         # 低运保底：分数至少抬到 floor（保证最后能及格）
         if floor is not None:
             score = max(score, min(100, floor))
@@ -350,6 +353,13 @@ class JrysPlugin(Star):
             "comment": rng.choice(comment_pool),
             "motto": rng.choice(motto_pool),
         }
+
+    @staticmethod
+    def _roll_score(rng: random.Random) -> int:
+        """加权抽分：先按权重选档，再在档内随机。吉及以上约 60%，低分被压低"""
+        idx = rng.choices(range(len(LEVELS)), weights=SCORE_WEIGHTS)[0]
+        lo, hi = LEVELS[idx][1], LEVELS[idx][2]
+        return rng.randint(lo, hi)
 
     def _prune(self, uid: str):
         """历史只保留最近 KEEP_DAYS 天，防止 data.json 无限膨胀"""

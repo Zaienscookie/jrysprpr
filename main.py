@@ -1,4 +1,4 @@
-"""jrysprpr v1.2.1 - 今日运势（丰富版）
+"""jrysprpr v1.2.2 - 今日运势（丰富版）
 按 用户ID + 日期 确定性生成：同一人同一天全群同步、结果固定，
 每天凌晨 0 点自动刷新，不同群友结果不同，数据持久化到 data.json。
 
@@ -181,7 +181,7 @@ def _bar(score: int, width: int = 10) -> str:
     return "█" * filled + "░" * (width - filled)
 
 
-@register("jrysprpr", "扎恩斯", "今日运势：多群同步/0点刷新/统计/排行/转运，数据持久化", "1.2.1")
+@register("jrysprpr", "扎恩斯", "今日运势：多群同步/0点刷新/统计/排行/转运，数据持久化", "1.2.2")
 class JrysPlugin(Star):
     def __init__(self, context: Context):
         super().__init__(context)
@@ -226,7 +226,7 @@ class JrysPlugin(Star):
             yield event.plain_result(f"今天的转运机会用完了（{MAX_REROLL}次），凌晨 0 点重置")
             return
         used = rec.get("rerolls", 0) + 1
-        # 转运一般往好了转：新分数从 旧分~100 区间抽，维度同理，只升不降
+        # 转运小步上升：分数/维度每次最多 +10，只升不降
         nrec = self._gen(uid, today, used, min_score=rec["score"], min_dims=rec["dims"])
         nrec["gid"] = rec.get("gid") or (event.get_group_id() or "私聊")
         nrec["rerolls"] = used
@@ -302,8 +302,11 @@ class JrysPlugin(Star):
     def _gen(self, uid: str, today: str, salt: int,
              min_score: int | None = None, min_dims: dict | None = None) -> dict:
         rng = random.Random(_seed(uid, today, salt))
-        # 转运时分数从 旧分~100 抽（只升不降）；首抽从 0~100 抽
-        score = rng.randint(min_score if min_score is not None else 0, 100)
+        # 转运只小幅上升：每次最多 +10 分（只升不降）；首抽从 0~100 抽
+        if min_score is not None:
+            score = rng.randint(min_score, min(100, min_score + 10))
+        else:
+            score = rng.randint(0, 100)
         level_name = icon = ""
         for lv, a, b, ic in LEVELS:
             if a <= score <= b:
@@ -317,8 +320,11 @@ class JrysPlugin(Star):
             comment_pool, motto_pool = COMMENT_MID, MOTTOS_MID
         dims = {}
         for d in DIMS:
-            lo = min_dims[d] if min_dims and d in min_dims else 20
-            dims[d] = rng.randint(lo, 100)
+            if min_dims and d in min_dims:
+                lo = min_dims[d]
+                dims[d] = rng.randint(lo, min(100, lo + 10))
+            else:
+                dims[d] = rng.randint(20, 100)
         return {
             "date": today,
             "level": level_name,

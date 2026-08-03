@@ -1,12 +1,12 @@
-"""jrysprpr v1.2 - 今日运势（丰富版）
+"""jrysprpr v1.2.1 - 今日运势（丰富版）
 按 用户ID + 日期 确定性生成：同一人同一天全群同步、结果固定，
 每天凌晨 0 点自动刷新，不同群友结果不同，数据持久化到 data.json。
 
 命令：
   今日运势 / 运势 / jrys        查看今日运势
+  转运 / 重抽运势 / jrysreroll  转运今日运势（每天限3次，一般越转越好）
   运势统计 / jrysstat           近30天个人运势统计
   运势排行 / jrysrank / 今日榜  本群今日运势榜 TOP3
-  重抽运势 / jrysreroll         重抽一次今日运势（每天限1次）
   运势帮助 / jryshelp           命令说明
 """
 
@@ -144,7 +144,7 @@ COMMENT_BAD = [
 
 DIMS = ["财运", "事业", "爱情", "健康"]
 KEEP_DAYS = 30   # 历史记录保留天数（统计用）
-MAX_REROLL = 1   # 每天重抽次数上限
+MAX_REROLL = 3   # 每天转运次数上限
 
 
 def _load():
@@ -181,7 +181,7 @@ def _bar(score: int, width: int = 10) -> str:
     return "█" * filled + "░" * (width - filled)
 
 
-@register("jrysprpr", "扎恩斯", "今日运势：多群同步/0点刷新/统计/排行/重抽，数据持久化", "1.2.0")
+@register("jrysprpr", "扎恩斯", "今日运势：多群同步/0点刷新/统计/排行/转运，数据持久化", "1.2.1")
 class JrysPlugin(Star):
     def __init__(self, context: Context):
         super().__init__(context)
@@ -212,8 +212,8 @@ class JrysPlugin(Star):
         _save(self._data)
         yield event.plain_result(self._render(rec, first=True))
 
-    # ---------- 重抽 ----------
-    @filter_mod.command("重抽运势", alias={"jrysreroll", "重抽"})
+    # ---------- 转运 ----------
+    @filter_mod.command("转运", alias={"转运运势", "重抽运势", "重抽", "jrysreroll"})
     async def reroll(self, event: AstrMessageEvent):
         uid = event.get_sender_id()
         today = _fortune_date()
@@ -223,14 +223,19 @@ class JrysPlugin(Star):
             yield event.plain_result("今天还没抽过运势，先发「今日运势」")
             return
         if rec.get("rerolls", 0) >= MAX_REROLL:
-            yield event.plain_result("今天的重抽机会用完了，凌晨 0 点重置")
+            yield event.plain_result(f"今天的转运机会用完了（{MAX_REROLL}次），凌晨 0 点重置")
             return
-        nrec = self._gen(uid, today, rec.get("rerolls", 0) + 1)
+        used = rec.get("rerolls", 0) + 1
+        # 转运一般往好了转：新分数从 旧分~100 区间抽，维度同理，只升不降
+        nrec = self._gen(uid, today, used, min_score=rec["score"], min_dims=rec["dims"])
         nrec["gid"] = rec.get("gid") or (event.get_group_id() or "私聊")
-        nrec["rerolls"] = rec.get("rerolls", 0) + 1
+        nrec["rerolls"] = used
         recs[today] = nrec
         _save(self._data)
-        yield event.plain_result("重抽成功，这是你新的今日运势：\n" + self._render(nrec, first=False))
+        yield event.plain_result(
+            f"转运成功（{used}/{MAX_REROLL}），这是你新的今日运势：\n"
+            + self._render(nrec, first=False)
+        )
 
     # ---------- 统计 ----------
     @filter_mod.command("运势统计", alias={"jrysstat"})
@@ -294,9 +299,11 @@ class JrysPlugin(Star):
         yield event.plain_result("\n".join(lines))
 
     # ---------- 内部 ----------
-    def _gen(self, uid: str, today: str, salt: int) -> dict:
+    def _gen(self, uid: str, today: str, salt: int,
+             min_score: int | None = None, min_dims: dict | None = None) -> dict:
         rng = random.Random(_seed(uid, today, salt))
-        score = rng.randint(0, 100)
+        # 转运时分数从 旧分~100 抽（只升不降）；首抽从 0~100 抽
+        score = rng.randint(min_score if min_score is not None else 0, 100)
         level_name = icon = ""
         for lv, a, b, ic in LEVELS:
             if a <= score <= b:
@@ -308,12 +315,16 @@ class JrysPlugin(Star):
             comment_pool, motto_pool = COMMENT_BAD, MOTTOS_BAD
         else:
             comment_pool, motto_pool = COMMENT_MID, MOTTOS_MID
+        dims = {}
+        for d in DIMS:
+            lo = min_dims[d] if min_dims and d in min_dims else 20
+            dims[d] = rng.randint(lo, 100)
         return {
             "date": today,
             "level": level_name,
             "icon": icon,
             "score": score,
-            "dims": {d: rng.randint(20, 100) for d in DIMS},
+            "dims": dims,
             "color": rng.choice(COLORS),
             "num": rng.randint(1, 99),
             "item": rng.choice(ITEMS),
@@ -350,5 +361,6 @@ class JrysPlugin(Star):
             f"✅ 宜：{'、'.join(rec['yi'])}\n"
             f"⚠️ 忌：{'、'.join(rec['ji'])}\n"
             f"💬 {rec['comment']}\n"
-            f"📜 {rec['motto']}"
+            f"📜 {rec['motto']}\n"
+            f"使用 运势帮助 查看命令, 使用 转运 重新抽取今日运势"
         )

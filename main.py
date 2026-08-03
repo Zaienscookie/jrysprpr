@@ -1,6 +1,6 @@
-"""jrysprpr v1.0 - 今日运势
-按 群ID + 用户ID + 日期 确定性生成：同一人同一天结果固定（跨天自动刷新），
-不同群友结果不同，数据持久化到 data.json。
+"""jrysprpr v1.1 - 今日运势
+按 用户ID + 运势日期 确定性生成：同一人同一天全群同步、结果固定，
+每天中午 12 点自动重置新运势，不同群友结果不同，数据持久化到 data.json。
 
 命令：
   今日运势 / 运势 / jrys   查看今日运势
@@ -10,7 +10,7 @@ import os
 import json
 import random
 import hashlib
-from datetime import date
+from datetime import date, datetime, timedelta
 
 from astrbot.api.event import AstrMessageEvent, filter as filter_mod
 from astrbot.api.star import Context, Star, register
@@ -108,9 +108,17 @@ def _save(data):
         logger.error(f"jrysprpr: 保存 data.json 失败: {e}")
 
 
-def _seed(gid: str, uid: str, today: str) -> int:
-    raw = f"{gid}:{uid}:{today}".encode("utf-8")
+def _seed(uid: str, today: str) -> int:
+    # 只按 用户+日期 播种：同一用户所有群同步同一份运势
+    raw = f"{uid}:{today}".encode("utf-8")
     return int(hashlib.md5(raw).hexdigest()[:8], 16)
+
+
+def _fortune_date() -> str:
+    """运势日期：每天中午 12 点重置。0:00-11:59 显示前一天的运势，12:00 起算新一天"""
+    now = datetime.now()
+    d = now.date() if now.hour >= 12 else now.date() - timedelta(days=1)
+    return d.isoformat()
 
 
 @register("jrysprpr", "扎恩斯", "今日运势：按群友+日期确定性生成，跨天刷新，数据持久化", "1.0.0")
@@ -121,18 +129,17 @@ class JrysPlugin(Star):
 
     @filter_mod.command("今日运势", alias={"运势", "jrys", "jrysprpr"})
     async def fortune(self, event: AstrMessageEvent):
-        gid = event.get_group_id() or "私聊"
         uid = event.get_sender_id()
-        today = date.today().isoformat()
+        today = _fortune_date()
 
-        # 持久化：当天已有记录直接复用（同人同天固定，跨天自动刷新）
-        rec = self._data.setdefault(gid, {}).get(uid)
+        # 持久化：当前运势期已有记录直接复用（全群同步，12点重置）
+        rec = self._data.get(uid)
         if rec and rec.get("date") == today:
             yield event.plain_result(self._render(rec, first=False))
             return
 
         # 确定性生成
-        rng = random.Random(_seed(gid, uid, today))
+        rng = random.Random(_seed(uid, today))
         score = rng.randint(0, 100)
         level_name = icon = ""
         for lv, a, b, ic in LEVELS:
@@ -154,13 +161,13 @@ class JrysPlugin(Star):
                 COMMENT_GOOD if score >= 60 else COMMENT_BAD if score < 45 else COMMENT_MID
             ),
         }
-        self._data.setdefault(gid, {})[uid] = rec
+        self._data[uid] = rec
         _save(self._data)
         yield event.plain_result(self._render(rec, first=True))
 
     @staticmethod
     def _render(rec: dict, first: bool) -> str:
-        tip = "（今日运势已固定，明天自动刷新）" if not first else ""
+        tip = "（今日运势已固定，中午12点自动刷新）" if not first else ""
         dims = "  ".join(f"{k}{v}" for k, v in rec["dims"].items())
         return (
             f"{rec['icon']} 今日运势：{rec['level']}（{rec['score']}分）{tip}\n"

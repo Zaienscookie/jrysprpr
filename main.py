@@ -1,4 +1,4 @@
-"""jrysprpr v1.2.2 - 今日运势（丰富版）
+"""jrysprpr v1.2.3 - 今日运势（丰富版）
 按 用户ID + 日期 确定性生成：同一人同一天全群同步、结果固定，
 每天凌晨 0 点自动刷新，不同群友结果不同，数据持久化到 data.json。
 
@@ -181,7 +181,7 @@ def _bar(score: int, width: int = 10) -> str:
     return "█" * filled + "░" * (width - filled)
 
 
-@register("jrysprpr", "扎恩斯", "今日运势：多群同步/0点刷新/统计/排行/转运，数据持久化", "1.2.2")
+@register("jrysprpr", "扎恩斯", "今日运势：多群同步/0点刷新/统计/排行/转运，数据持久化", "1.2.3")
 class JrysPlugin(Star):
     def __init__(self, context: Context):
         super().__init__(context)
@@ -227,7 +227,11 @@ class JrysPlugin(Star):
             return
         used = rec.get("rerolls", 0) + 1
         # 转运小步上升：分数/维度每次最多 +10，只升不降
-        nrec = self._gen(uid, today, used, min_score=rec["score"], min_dims=rec["dims"])
+        # 低运保底：底线随剩余次数逐次抬升，保证最后一次转运后及格（>=60）
+        rem = MAX_REROLL - used  # 本次之后还剩几次转运
+        floor = max(rec["score"], 60 - rem * 10)
+        nrec = self._gen(uid, today, used, min_score=rec["score"],
+                         min_dims=rec["dims"], floor=floor)
         nrec["gid"] = rec.get("gid") or (event.get_group_id() or "私聊")
         nrec["rerolls"] = used
         recs[today] = nrec
@@ -300,13 +304,17 @@ class JrysPlugin(Star):
 
     # ---------- 内部 ----------
     def _gen(self, uid: str, today: str, salt: int,
-             min_score: int | None = None, min_dims: dict | None = None) -> dict:
+             min_score: int | None = None, min_dims: dict | None = None,
+             floor: int | None = None) -> dict:
         rng = random.Random(_seed(uid, today, salt))
         # 转运只小幅上升：每次最多 +10 分（只升不降）；首抽从 0~100 抽
         if min_score is not None:
             score = rng.randint(min_score, min(100, min_score + 10))
         else:
             score = rng.randint(0, 100)
+        # 低运保底：分数至少抬到 floor（保证最后能及格）
+        if floor is not None:
+            score = max(score, min(100, floor))
         level_name = icon = ""
         for lv, a, b, ic in LEVELS:
             if a <= score <= b:
@@ -368,5 +376,6 @@ class JrysPlugin(Star):
             f"⚠️ 忌：{'、'.join(rec['ji'])}\n"
             f"💬 {rec['comment']}\n"
             f"📜 {rec['motto']}\n"
-            f"使用 运势帮助 查看命令, 使用 转运 重新抽取今日运势"
+            f"使用 运势帮助 查看命令, 使用 转运 重新抽取今日运势\n"
+            f"（仅供娱乐，理性看待）"
         )

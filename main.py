@@ -1,4 +1,4 @@
-"""jrysprpr v1.2.4 - 今日运势（丰富版）
+"""jrysprpr v1.2.5 - 今日运势（丰富版）
 按 用户ID + 日期 确定性生成：同一人同一天全群同步、结果固定，
 每天凌晨 0 点自动刷新，不同群友结果不同，数据持久化到 data.json。
 
@@ -143,11 +143,12 @@ COMMENT_BAD = [
 ]
 
 DIMS = ["财运", "事业", "爱情", "健康"]
-KEEP_DAYS = 30   # 历史记录保留天数（统计用）
-MAX_REROLL = 3   # 每天转运次数上限
+KEEP_DAYS = 30    # 历史记录保留天数（统计用）
+MAX_REROLL = 3    # 每天转运次数上限
+TRANSFER_STEP = 12  # 转运单次最大增幅
 
-# 首抽加权：吉及以上占 60%，压低分概率（顺序对应 LEVELS）
-SCORE_WEIGHTS = [10, 13, 16, 21, 16, 12, 8, 4]
+# 首抽加权：吉及以上占 65%，压低分概率（顺序对应 LEVELS）
+SCORE_WEIGHTS = [11, 14, 17, 23, 15, 10, 7, 3]
 
 
 def _load():
@@ -184,7 +185,7 @@ def _bar(score: int, width: int = 10) -> str:
     return "█" * filled + "░" * (width - filled)
 
 
-@register("jrysprpr", "扎恩斯", "今日运势：多群同步/0点刷新/统计/排行/转运，数据持久化", "1.2.4")
+@register("jrysprpr", "扎恩斯", "今日运势：多群同步/0点刷新/统计/排行/转运，数据持久化", "1.2.5")
 class JrysPlugin(Star):
     def __init__(self, context: Context):
         super().__init__(context)
@@ -310,9 +311,9 @@ class JrysPlugin(Star):
              min_score: int | None = None, min_dims: dict | None = None,
              floor: int | None = None) -> dict:
         rng = random.Random(_seed(uid, today, salt))
-        # 转运只小幅上升：每次最多 +10 分（只升不降）；首抽加权偏吉
+        # 转运小幅上升：每次最多 +12 分（只升不降）；首抽加权偏吉
         if min_score is not None:
-            score = rng.randint(min_score, min(100, min_score + 10))
+            score = rng.randint(min_score, min(100, min_score + TRANSFER_STEP))
         else:
             score = self._roll_score(rng)
         # 低运保底：分数至少抬到 floor（保证最后能及格）
@@ -333,7 +334,7 @@ class JrysPlugin(Star):
         for d in DIMS:
             if min_dims and d in min_dims:
                 lo = min_dims[d]
-                dims[d] = rng.randint(lo, min(100, lo + 10))
+                dims[d] = rng.randint(lo, min(100, lo + TRANSFER_STEP))
             else:
                 dims[d] = rng.randint(20, 100)
         return {
@@ -371,7 +372,7 @@ class JrysPlugin(Star):
 
     @staticmethod
     def _render(rec: dict, first: bool) -> str:
-        tip = "（今日运势已固定，凌晨0点自动刷新）" if not first else ""
+        tip = ""
         dims = "\n".join(
             f"  {_bar(v)} {k}{v}" for k, v in rec["dims"].items()
         )

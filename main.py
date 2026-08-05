@@ -1,4 +1,4 @@
-"""jrysprpr v1.2.5 - 今日运势（丰富版）
+"""jrysprpr v1.2.6 - 今日运势（丰富版）
 按 用户ID + 日期 确定性生成：同一人同一天全群同步、结果固定，
 每天凌晨 0 点自动刷新，不同群友结果不同，数据持久化到 data.json。
 
@@ -145,7 +145,7 @@ COMMENT_BAD = [
 DIMS = ["财运", "事业", "爱情", "健康"]
 KEEP_DAYS = 30    # 历史记录保留天数（统计用）
 MAX_REROLL = 3    # 每天转运次数上限
-TRANSFER_STEP = 12  # 转运单次最大增幅
+TRANSFER_STEP = 25  # 转运单次最大增幅
 
 # 首抽加权：吉及以上占 65%，压低分概率（顺序对应 LEVELS）
 SCORE_WEIGHTS = [11, 14, 17, 23, 15, 10, 7, 3]
@@ -185,7 +185,7 @@ def _bar(score: int, width: int = 10) -> str:
     return "█" * filled + "░" * (width - filled)
 
 
-@register("jrysprpr", "扎恩斯", "今日运势：多群同步/0点刷新/统计/排行/转运，数据持久化", "1.2.5")
+@register("jrysprpr", "扎恩斯", "今日运势：多群同步/0点刷新/统计/排行/转运，数据持久化", "1.2.6")
 class JrysPlugin(Star):
     def __init__(self, context: Context):
         super().__init__(context)
@@ -230,10 +230,10 @@ class JrysPlugin(Star):
             yield event.plain_result(f"今天的转运机会用完了（{MAX_REROLL}次），凌晨 0 点重置")
             return
         used = rec.get("rerolls", 0) + 1
-        # 转运小步上升：分数/维度每次最多 +10，只升不降
-        # 低运保底：底线随剩余次数逐次抬升，保证最后一次转运后及格（>=60）
+        # 转运上升：分数/维度每次最多 +25，只升不降
+        # 低运保底：底线随剩余次数逐次抬升，保证最后一次转运后 70+ 分
         rem = MAX_REROLL - used  # 本次之后还剩几次转运
-        floor = max(rec["score"], 60 - rem * 10)
+        floor = max(rec["score"], 70 - rem * 10)
         nrec = self._gen(uid, today, used, min_score=rec["score"],
                          min_dims=rec["dims"], floor=floor)
         nrec["gid"] = rec.get("gid") or (event.get_group_id() or "私聊")
@@ -311,7 +311,7 @@ class JrysPlugin(Star):
              min_score: int | None = None, min_dims: dict | None = None,
              floor: int | None = None) -> dict:
         rng = random.Random(_seed(uid, today, salt))
-        # 转运小幅上升：每次最多 +12 分（只升不降）；首抽加权偏吉
+        # 转运上升：每次最多 +25 分（只升不降）；首抽加权偏吉
         if min_score is not None:
             score = rng.randint(min_score, min(100, min_score + TRANSFER_STEP))
         else:

@@ -17,7 +17,8 @@ import hashlib
 import time
 from datetime import date
 
-from astrbot.api.event import AstrMessageEvent, filter as filter_mod, EventMessageType
+from astrbot.api.event import AstrMessageEvent, filter as filter_mod
+from astrbot.api.event.filter import EventMessageType
 from astrbot.api.star import Context, Star, register
 from astrbot.api import logger
 from astrbot.api.message_components import Plain, Image as MsgImage, At

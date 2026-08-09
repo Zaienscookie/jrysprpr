@@ -19,6 +19,7 @@ from datetime import date
 from astrbot.api.event import AstrMessageEvent, filter as filter_mod
 from astrbot.api.star import Context, Star, register
 from astrbot.api import logger
+from astrbot.api.message_components import Plain, Image as MsgImage
 from PIL import Image, ImageDraw, ImageFont
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -479,7 +480,7 @@ class JrysPlugin(Star):
         today = _fortune_date()
         ck = _today_cocktail(today)
         img_path = _ensure_cocktail_image(ck, today)
-        yield event.chain_result([Plain(_render_special(ck, today)), Image(img_path)])
+        yield event.chain_result([Plain(_render_special(ck, today)), MsgImage(img_path)])
 
     # ---------- 特调菜单 ----------
     @filter_mod.command("特调菜单", alias={"酒单", "jrysmenu"})

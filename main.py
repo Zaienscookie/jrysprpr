@@ -14,12 +14,13 @@ import os
 import json
 import random
 import hashlib
+import time
 from datetime import date
 
-from astrbot.api.event import AstrMessageEvent, filter as filter_mod
+from astrbot.api.event import AstrMessageEvent, filter as filter_mod, EventMessageType
 from astrbot.api.star import Context, Star, register
 from astrbot.api import logger
-from astrbot.api.message_components import Plain, Image as MsgImage
+from astrbot.api.message_components import Plain, Image as MsgImage, At
 from PIL import Image, ImageDraw, ImageFont
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -266,7 +267,80 @@ COCKTAILS = [
         "layers": [(18, 14, 24), (40, 28, 60)],
         "bg": [(8, 8, 12), (2, 2, 5)],
     },
+    {
+        "name": "苔原晨光", "en": "Tundra Dawn", "base": "伏特加",
+        "abv": 40, "glass": "岩石杯",
+        "ingredients": ["伏特加 45ml", "接骨木花利口酒 15ml", "青柠汁 15ml", "苏打水 30ml"],
+        "recipe": "伏特加与接骨木花、青柠摇匀，滤入冰岩石杯，苏打水补满，薄荷叶装饰。",
+        "garnish": "薄荷叶", "desc": "清冽如西伯利亚的晨雾，尾调是花香的暖。",
+        "layers": [(200, 215, 230), (235, 235, 210), (250, 240, 200)],
+        "bg": [(30, 40, 60), (5, 8, 15)],
+    },
+    {
+        "name": "铁幕", "en": "Iron Curtain", "base": "黑麦威士忌",
+        "abv": 45, "glass": "古典杯",
+        "ingredients": ["黑麦威士忌 50ml", "樱桃利口酒 10ml", "安高天娜苦精 2滴", "方糖 1块"],
+        "recipe": "方糖浸苦精放入古典杯，加黑麦与樱桃利口酒，大冰球搅拌至起霜。",
+        "garnish": "车厘子", "desc": "冷冽强硬的开场，苦尽后是焦糖的余温。",
+        "layers": [(120, 28, 34), (88, 26, 30), (40, 12, 16)],
+        "bg": [(25, 22, 26), (6, 5, 8)],
+    },
+    {
+        "name": "白令海峡", "en": "Bering Strait", "base": "金酒",
+        "abv": 36, "glass": "高球杯",
+        "ingredients": ["金酒 40ml", "蓝橙利口酒 15ml", "青柠汁 20ml", "汤力水 90ml"],
+        "recipe": "金酒、蓝橙、青柠摇匀入冰杯，汤力水补满，杯沿擦海盐。",
+        "garnish": "青柠角", "desc": "冰蓝通透，像隔海相望的两个大陆，一口跨越。",
+        "layers": [(40, 120, 190), (90, 170, 220), (210, 235, 245)],
+        "bg": [(12, 24, 50), (3, 5, 12)],
+    },
+    {
+        "name": "芯片梦", "en": "Chip Dream", "base": "朗姆",
+        "abv": 30, "glass": "柯林杯",
+        "ingredients": ["白朗姆 40ml", "蜜瓜利口酒 20ml", "菠萝汁 40ml", "薄荷糖浆 10ml"],
+        "recipe": "全部材料加冰摇匀，滤入高柯林杯，薄荷叶拍醒装饰。",
+        "garnish": "薄荷叶", "desc": "电路板的绿光在杯中流转，甜中带一丝薄荷的清醒。",
+        "layers": [(30, 200, 120), (20, 90, 160), (10, 12, 20)],
+        "bg": [(10, 22, 18), (2, 4, 6)],
+    },
+    {
+        "name": "雪豹", "en": "Snow Leopard", "base": "伏特加",
+        "abv": 42, "glass": "马提尼杯",
+        "ingredients": ["伏特加 45ml", "白可可利口酒 15ml", "奶油 20ml", "盐 一撮"],
+        "recipe": "材料加冰摇至起霜，滤入冰马提尼杯，杯沿撒细盐。",
+        "garnish": "银珠糖", "desc": "乳白雾霭下藏着烈度，像雪山之巅的猎手。",
+        "layers": [(235, 235, 245), (200, 205, 220), (160, 170, 195)],
+        "bg": [(28, 30, 46), (6, 7, 12)],
+    },
+    {
+        "name": "末班地铁", "en": "Last Metro", "base": "波本威士忌",
+        "abv": 40, "glass": "古典杯",
+        "ingredients": ["波本威士忌 50ml", "枫糖浆 10ml", "烟熏盐 少许", "橙皮 1条"],
+        "recipe": "波本与枫糖在冰杯慢搅，烟熏盐撒面，橙皮喷香入杯。",
+        "garnish": "橙皮", "desc": "深夜站台的暖黄灯光，一杯喝完正好赶上末班。",
+        "layers": [(210, 140, 60), (150, 90, 40), (80, 45, 20)],
+        "bg": [(30, 22, 14), (8, 5, 3)],
+    },
+    {
+        "name": "以太回声", "en": "Ether Echo", "base": "苦艾酒",
+        "abv": 55, "glass": "郁金香杯",
+        "ingredients": ["苦艾酒 30ml", "金酒 30ml", "干味美思 15ml", "方糖 半块"],
+        "recipe": "苦艾、金酒、味美思冰镇搅匀，滤入郁金香杯，方糖悬杯口点燃滴落。",
+        "garnish": "八角", "desc": "祖母绿的幻觉漩涡，清醒与迷醉之间只有一线。",
+        "layers": [(30, 180, 90), (20, 110, 70), (8, 40, 28)],
+        "bg": [(10, 30, 22), (3, 8, 6)],
+    },
+    {
+        "name": "大扎特调", "en": "Big Zha Special", "base": "白兰地",
+        "abv": 43, "glass": "白兰地杯",
+        "ingredients": ["白兰地 50ml", "橙皮利口酒 10ml", "蜂蜜 5ml", "丁香 2粒"],
+        "recipe": "白兰地、橙皮利口酒、蜂蜜加冰轻搅，丁香浮面，掌温焐热杯身。",
+        "garnish": "丁香", "desc": "威廉酒馆的隐藏款，虎纹色的余晖，留给懂的人。",
+        "layers": [(230, 160, 40), (200, 110, 30), (150, 60, 20)],
+        "bg": [(40, 24, 10), (10, 6, 3)],
+    },
 ]
+
 
 
 # 首抽加权：吉及以上占 65%，压低分概率（顺序对应 LEVELS）
@@ -319,6 +393,7 @@ def _load_whitelist() -> dict:
 
 # 今日特调 DEBUG 模式计数器：每发一次「今日特调 测试」换一杯，模拟每日重置
 _DEBUG_COUNTER = 0
+_SPECIAL_LAST: dict = {}  # gid -> 上次请求时间戳（防连发误触）
 
 
 def _today_cocktail(today: str) -> dict:
@@ -468,7 +543,16 @@ class JrysPlugin(Star):
         yield event.plain_result("\n".join(lines))
 
     # ---------- 今日特调（白名单群专属） ----------
-    @filter_mod.command("今日特调", alias={"特调", "jt", "jrys_t"})
+    # 硬拦截：直接匹配「今日特调」/「z今日特调」，不经过命令前缀匹配，防止误触发 AI
+    @filter.event_message_type(EventMessageType.ALL)
+    async def special_guard(self, event: AstrMessageEvent):
+        msg = event.message_str.strip()
+        raw = msg[1:].strip() if msg.startswith("z") else msg
+        if raw.startswith("今日特调"):
+            async for r in self.special(event):
+                yield r
+        return
+
     async def special(self, event: AstrMessageEvent):
         gid = event.get_group_id()
         if not gid:
@@ -489,11 +573,17 @@ class JrysPlugin(Star):
             _DEBUG_COUNTER = (_DEBUG_COUNTER + 1) % len(COCKTAILS)
             ck = COCKTAILS[_DEBUG_COUNTER]
             img_path = _ensure_cocktail_image(ck, today, debug=_DEBUG_COUNTER)
-            yield event.chain_result([Plain("[DEBUG 模式] " + _render_special(ck, today)), MsgImage(img_path)])
+            yield event.chain_result([Plain("[DEBUG 模式] " + _render_special(ck, today) + "\n🍸 这杯酒属于："), At(qq=event.get_sender_id()), MsgImage(img_path)])
             return
+        # 防连发：同一群 4 秒内重复请求直接拦下，避免误触发 AI
+        now = time.time()
+        if now - _SPECIAL_LAST.get(gid, 0) < 4:
+            yield event.plain_result("🍸 特调正在调制中，稍等片刻～")
+            return
+        _SPECIAL_LAST[gid] = now
         ck = _today_cocktail(today)
         img_path = _ensure_cocktail_image(ck, today)
-        yield event.chain_result([Plain(_render_special(ck, today)), MsgImage(img_path)])
+        yield event.chain_result([Plain(_render_special(ck, today) + "\n🍸 这杯酒属于："), At(qq=event.get_sender_id()), MsgImage(img_path)])
 
     # ---------- 特调菜单 ----------
     @filter_mod.command("特调菜单", alias={"酒单", "jrysmenu"})

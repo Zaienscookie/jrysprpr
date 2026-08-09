@@ -324,7 +324,7 @@ def _today_cocktail(today: str) -> dict:
 
 
 def _render_special(ck: dict, today: str) -> str:
-    m, d = today.split("-")
+    _, m, d = today.split("-")
     ing = "\n".join(f"・{i}" for i in ck["ingredients"])
     return (
         f"🍸 今日特调｜{int(m)}月{int(d)}日（全群每日相同）\n"

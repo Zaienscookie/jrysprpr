@@ -317,6 +317,10 @@ def _load_whitelist() -> dict:
     return {"groups": []}
 
 
+# 今日特调 DEBUG 模式计数器：每发一次「今日特调 测试」换一杯，模拟每日重置
+_DEBUG_COUNTER = 0
+
+
 def _today_cocktail(today: str) -> dict:
     """按日期确定性选酒：全群每日同一杯"""
     idx = int(hashlib.md5(f"jrys:special:{today}".encode()).hexdigest()[:8], 16) % len(COCKTAILS)
@@ -477,7 +481,16 @@ class JrysPlugin(Star):
                 "（管理员可发送：特调白名单 add 群号）"
             )
             return
+        parts = event.message_str.split()
+        debug = len(parts) > 1 and "测试" in parts[1]
         today = _fortune_date()
+        if debug:
+            global _DEBUG_COUNTER
+            _DEBUG_COUNTER = (_DEBUG_COUNTER + 1) % len(COCKTAILS)
+            ck = COCKTAILS[_DEBUG_COUNTER]
+            img_path = _ensure_cocktail_image(ck, today, debug=_DEBUG_COUNTER)
+            yield event.chain_result([Plain("[DEBUG 模式] " + _render_special(ck, today)), MsgImage(img_path)])
+            return
         ck = _today_cocktail(today)
         img_path = _ensure_cocktail_image(ck, today)
         yield event.chain_result([Plain(_render_special(ck, today)), MsgImage(img_path)])
@@ -627,10 +640,10 @@ class JrysPlugin(Star):
         )
 
 # ============ 今日特调：绘图 ============
-def _ensure_cocktail_image(ck: dict, today: str) -> str:
-    """按日期缓存图片：special_YYYY-MM-DD.png"""
+def _ensure_cocktail_image(ck: dict, today: str, debug: int | None = None) -> str:
+    """按日期缓存图片：special_YYYY-MM-DD.png；DEBUG 模式按序号缓存"""
     os.makedirs(COCKTAIL_DIR, exist_ok=True)
-    fname = f"special_{today}.png"
+    fname = f"special_debug_{debug}.png" if debug is not None else f"special_{today}.png"
     path = os.path.join(COCKTAIL_DIR, fname)
     if os.path.exists(path):
         return path

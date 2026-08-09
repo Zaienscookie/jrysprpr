@@ -1932,8 +1932,9 @@ class JrysPlugin(Star):
             yield event.plain_result("🍸 特调正在调制中，稍等片刻～")
             return
         _SPECIAL_LAST[gid] = now
-        ck = _today_cocktail(today, uid=event.get_sender_id())
-        img_path = _ensure_cocktail_image(ck, today)
+        uid = event.get_sender_id()
+        ck = _today_cocktail(today, uid=uid)
+        img_path = _ensure_cocktail_image(ck, today, uid=uid)
         yield event.chain_result([Plain(_render_special(ck, today) + "\n🍸 这杯酒属于："), At(qq=event.get_sender_id()), MsgImage(img_path)])
 
     # ---------- 特调菜单 ----------
@@ -2097,10 +2098,13 @@ class JrysPlugin(Star):
         )
 
 # ============ 今日特调：绘图 ============
-def _ensure_cocktail_image(ck: dict, today: str, debug: int | None = None) -> str:
-    """按日期缓存图片：special_YYYY-MM-DD.png；DEBUG 模式按序号缓存"""
+def _ensure_cocktail_image(ck: dict, today: str, debug: int | None = None, uid: str = "") -> str:
+    """图片与酒绑定：每杯酒只生成一次，之后所有人抽到都直接复用同一张图"""
     os.makedirs(COCKTAIL_DIR, exist_ok=True)
-    fname = f"special_debug_{debug}.png" if debug is not None else f"special_{today}.png"
+    if debug is not None:
+        fname = f"special_debug_{debug}.png"
+    else:
+        fname = f"cocktail_{int(hashlib.md5(ck['name'].encode()).hexdigest()[:8], 16)}.png"
     path = os.path.join(COCKTAIL_DIR, fname)
     if os.path.exists(path):
         return path

@@ -18,7 +18,7 @@ import time
 from datetime import date
 
 from astrbot.api.event import AstrMessageEvent, filter as filter_mod
-from astrbot.api.event.filter import EventMessageType
+from astrbot.api.event.filter import EventMessageType, event_message_type
 from astrbot.api.star import Context, Star, register
 from astrbot.api import logger
 from astrbot.api.message_components import Plain, Image as MsgImage, At
@@ -545,7 +545,7 @@ class JrysPlugin(Star):
 
     # ---------- 今日特调（白名单群专属） ----------
     # 硬拦截：直接匹配「今日特调」/「z今日特调」，不经过命令前缀匹配，防止误触发 AI
-    @filter.event_message_type(EventMessageType.ALL)
+    @event_message_type(EventMessageType.ALL)
     async def special_guard(self, event: AstrMessageEvent):
         msg = event.message_str.strip()
         raw = msg[1:].strip() if msg.startswith("z") else msg

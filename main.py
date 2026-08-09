@@ -16,7 +16,7 @@ import json
 import random
 import hashlib
 import time
-from datetime import date
+from datetime import date, datetime, timedelta
 
 from astrbot.api.event import AstrMessageEvent, filter as filter_mod
 from astrbot.api.event.filter import EventMessageType, event_message_type
@@ -1675,9 +1675,56 @@ _DEBUG_COUNTER = 0
 _SPECIAL_LAST: dict = {}  # gid -> 上次请求时间戳（防连发误触）
 
 
-def _today_cocktail(today: str) -> dict:
-    """按日期确定性选酒：全群每日同一杯"""
-    idx = int(hashlib.md5(f"jrys:special:{today}".encode()).hexdigest()[:8], 16) % len(COCKTAILS)
+SPECIAL_RECORD_PATH = os.path.join(BASE_DIR, "special_records.json")
+
+
+def _special_date() -> str:
+    """特调日期：每天凌晨 5 点刷新（5:00 前仍算前一天）"""
+    return (datetime.now() - timedelta(hours=5)).strftime("%Y-%m-%d")
+
+
+def _load_special_records() -> dict:
+    """加载特调抽取记录：{uid: {"date": "2026-08-09", "idx": int}}"""
+    try:
+        if os.path.exists(SPECIAL_RECORD_PATH):
+            with open(SPECIAL_RECORD_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, dict):
+                return data
+    except Exception as e:  # noqa: BLE001
+        logger.error(f"jrysprpr: 读取特调记录失败: {e}")
+    return {}
+
+
+def _save_special_records(records: dict) -> None:
+    try:
+        with open(SPECIAL_RECORD_PATH, "w", encoding="utf-8") as f:
+            json.dump(records, f, ensure_ascii=False, indent=1)
+    except Exception as e:  # noqa: BLE001
+        logger.error(f"jrysprpr: 保存特调记录失败: {e}")
+
+
+def _today_cocktail(today: str, uid: str = "") -> dict:
+    """每人一杯：同一用户当天（5点周期）特调固定，跨天自动换新（持久化）"""
+    if not uid:
+        idx = int(hashlib.md5(f"jrys:special:{today}".encode()).hexdigest()[:8], 16) % len(COCKTAILS)
+        return COCKTAILS[idx]
+    records = _load_special_records()
+    rec = records.get(str(uid))
+    if rec and rec.get("date") == today and 0 <= rec.get("idx", -1) < len(COCKTAILS):
+        return COCKTAILS[rec["idx"]]
+    # 抽取新的一杯：随机 + uid 盐，避免连续两天同一杯
+    rng = random.Random(f"jrys:{uid}:{today}")
+    idx = rng.randrange(len(COCKTAILS))
+    if rec and rec.get("date") != today and rec.get("idx") == idx:
+        idx = (idx + 1) % len(COCKTAILS)
+    records[str(uid)] = {"date": today, "idx": idx}
+    # 顺手清理 7 天前的旧记录，防止文件无限增长
+    keep = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+    stale = [u for u, r in records.items() if isinstance(r, dict) and r.get("date", "") < keep]
+    for u in stale:
+        records.pop(u, None)
+    _save_special_records(records)
     return COCKTAILS[idx]
 
 
@@ -1697,7 +1744,7 @@ def _render_special(ck: dict, today: str) -> str:
     _, m, d = today.split("-")
     ing = "\n".join(f"・{_fmt_ing(i)}" for i in ck["ingredients"])
     return (
-        f"🍸 今日特调｜{int(m)}月{int(d)}日（全群每日相同）\n"
+        f"🍸 今日特调｜{int(m)}月{int(d)}日（每人一杯）\n"
         f"━━━━━━━━━━━━━━\n"
         f"「{ck['name']}」 {ck['en']}\n"
         f"基酒：{ck['base']}　｜　{ck['abv']}% vol　｜　{ck['glass']}\n"
@@ -1706,7 +1753,8 @@ def _render_special(ck: dict, today: str) -> str:
         f"🫗 做法：{ck['recipe']}\n"
         f"👅 口感：{ck['desc']}\n"
         f"━━━━━━━━━━━━━━\n"
-        f"— 醚都城 · 威廉酒馆特供 —"
+        f"— 醚都城 · 威廉酒馆特供 —\n"
+        f"⚠️ 过量饮酒有害健康"
     )
 
 
@@ -1858,7 +1906,7 @@ class JrysPlugin(Star):
             return
         parts = event.message_str.split()
         debug = len(parts) > 1 and "测试" in parts[1]
-        today = _fortune_date()
+        today = _special_date()
         if debug:
             # 「测试 数字」直接查看指定编号的酒（1 基）
             idx = None
@@ -1884,7 +1932,7 @@ class JrysPlugin(Star):
             yield event.plain_result("🍸 特调正在调制中，稍等片刻～")
             return
         _SPECIAL_LAST[gid] = now
-        ck = _today_cocktail(today)
+        ck = _today_cocktail(today, uid=event.get_sender_id())
         img_path = _ensure_cocktail_image(ck, today)
         yield event.chain_result([Plain(_render_special(ck, today) + "\n🍸 这杯酒属于："), At(qq=event.get_sender_id()), MsgImage(img_path)])
 
@@ -1901,7 +1949,7 @@ class JrysPlugin(Star):
         lines = ["🍸 醚都城·威廉酒馆 特调酒单：", ""]
         for i, c in enumerate(COCKTAILS, 1):
             lines.append(f"{i:02d}. {c['name']} {c['en']} ｜ {c['abv']}% vol ｜ {c['glass']}")
-        lines += ["", "发送「今日特调」获取今日随机一杯（全群每日相同）"]
+        lines += ["", "发送「今日特调」抽取今日专属一杯（每人不同，每日5点刷新）"]
         yield event.plain_result("\n".join(lines))
 
     # ---------- 白名单管理 ----------

@@ -11,6 +11,7 @@
 """
 
 import os
+import re
 import json
 import random
 import hashlib

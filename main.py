@@ -1965,18 +1965,28 @@ def _save_special_records(records: dict) -> None:
         logger.error(f"jrysprpr: 保存特调记录失败: {e}")
 
 
-def _reroll_cocktail(today: str, uid: str) -> dict:
-    """换杯：重新抽取当前用户今天的特调，保证与已抽的不重复"""
+def _reroll_cocktail(today: str, uid: str):
+    """换杯：重新抽取当前用户今天的特调，与已抽不重复；每日限3次。
+    返回 (ck, 剩余次数)；超限时返回 (None, 0)"""
     records = _load_special_records()
-    old = records.get(str(uid), {})
-    old_idx = old.get("idx") if old.get("date") == today else None
+    rec = records.get(str(uid), {})
+    if rec.get("date") != today:
+        rec = {"date": today, "idx": rec.get("idx"), "rerolls": 0}
+        records[str(uid)] = rec
+    if rec.get("rerolls", 0) >= 3:
+        _save_special_records(records)
+        return None, 0
+    old_idx = rec.get("idx") if rec.get("date") == today else None
     rng = random.Random(f"jrys:reroll:{uid}:{today}:{time.time()}")
     idx = rng.randrange(len(COCKTAILS))
     if idx == old_idx:
         idx = (idx + 1) % len(COCKTAILS)
-    records[str(uid)] = {"date": today, "idx": idx}
+    rec["date"] = today
+    rec["idx"] = idx
+    rec["rerolls"] = rec.get("rerolls", 0) + 1
+    records[str(uid)] = rec
     _save_special_records(records)
-    return COCKTAILS[idx]
+    return COCKTAILS[idx], 3 - rec["rerolls"]
 
 
 def _today_cocktail(today: str, uid: str = "") -> dict:
@@ -1993,7 +2003,7 @@ def _today_cocktail(today: str, uid: str = "") -> dict:
     idx = rng.randrange(len(COCKTAILS))
     if rec and rec.get("date") != today and rec.get("idx") == idx:
         idx = (idx + 1) % len(COCKTAILS)
-    records[str(uid)] = {"date": today, "idx": idx}
+    records[str(uid)] = {"date": today, "idx": idx, "rerolls": 0}
     # 顺手清理 7 天前的旧记录，防止文件无限增长
     keep = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
     stale = [u for u, r in records.items() if isinstance(r, dict) and r.get("date", "") < keep]
@@ -2033,7 +2043,7 @@ def _render_special(ck: dict, today: str) -> str:
     )
 
 
-@register("jrysprpr", "扎恩斯", "今日运势：多群同步/0点刷新/统计/排行/转运，数据持久化", "1.6.6")
+@register("jrysprpr", "扎恩斯", "今日运势：多群同步/0点刷新/统计/排行/转运，数据持久化", "1.6.7")
 class JrysPlugin(Star):
     def __init__(self, context: Context):
         super().__init__(context)
@@ -2240,9 +2250,12 @@ class JrysPlugin(Star):
         _SPECIAL_LAST[gid] = now
         today = _special_date()
         uid = event.get_sender_id()
-        ck = _reroll_cocktail(today, uid)
+        ck, remain = _reroll_cocktail(today, uid)
+        if ck is None:
+            yield event.plain_result("🍸 今天的换杯次数用完了（每日限3次），明天再来吧")
+            return
         img_path = _ensure_cocktail_image(ck, today, uid=uid)
-        yield event.chain_result([Plain("🔄 换杯成功，这是你的新特调\n" + _render_special(ck, today) + "\n🍸 这杯酒属于："), At(qq=event.get_sender_id()), Plain(" (发送 换杯 重新抽取)"), MsgImage(img_path)])
+        yield event.chain_result([Plain(f"🔄 换杯成功（今日剩余 {remain} 次）\n" + _render_special(ck, today) + "\n🍸 这杯酒属于："), At(qq=event.get_sender_id()), Plain(" (发送 换杯 重新抽取)"), MsgImage(img_path)])
 
     # ---------- 特调菜单 ----------
     @filter_mod.command("特调菜单", alias={"酒单", "jrysmenu"})

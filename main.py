@@ -1704,6 +1704,20 @@ def _save_special_records(records: dict) -> None:
         logger.error(f"jrysprpr: 保存特调记录失败: {e}")
 
 
+def _reroll_cocktail(today: str, uid: str) -> dict:
+    """换杯：重新抽取当前用户今天的特调，保证与已抽的不重复"""
+    records = _load_special_records()
+    old = records.get(str(uid), {})
+    old_idx = old.get("idx") if old.get("date") == today else None
+    rng = random.Random(f"jrys:reroll:{uid}:{today}:{time.time()}")
+    idx = rng.randrange(len(COCKTAILS))
+    if idx == old_idx:
+        idx = (idx + 1) % len(COCKTAILS)
+    records[str(uid)] = {"date": today, "idx": idx}
+    _save_special_records(records)
+    return COCKTAILS[idx]
+
+
 def _today_cocktail(today: str, uid: str = "") -> dict:
     """每人一杯：同一用户当天（5点周期）特调固定，跨天自动换新（持久化）"""
     if not uid:
@@ -1758,7 +1772,7 @@ def _render_special(ck: dict, today: str) -> str:
     )
 
 
-@register("jrysprpr", "扎恩斯", "今日运势：多群同步/0点刷新/统计/排行/转运，数据持久化", "1.3.0")
+@register("jrysprpr", "扎恩斯", "今日运势：多群同步/0点刷新/统计/排行/转运，数据持久化", "1.6.5")
 class JrysPlugin(Star):
     def __init__(self, context: Context):
         super().__init__(context)
@@ -1898,6 +1912,10 @@ class JrysPlugin(Star):
         if raw.startswith("特调白名单") or raw == "jrys_wl":
             async for r in self.special_whitelist(event):
                 yield r
+            return
+        if raw == "换杯" or raw.startswith("换杯 "):
+            async for r in self.special_reroll(event):
+                yield r
         return
 
     async def special(self, event: AstrMessageEvent):
@@ -1924,7 +1942,7 @@ class JrysPlugin(Star):
                 if 0 <= idx < len(COCKTAILS):
                     ck = COCKTAILS[idx]
                     img_path = _ensure_cocktail_image(ck, today, debug=idx)
-                    yield event.chain_result([Plain(f"[DEBUG 第{idx+1}杯/{len(COCKTAILS)}] " + _render_special(ck, today) + "\n🍸 这杯酒属于："), At(qq=event.get_sender_id()), MsgImage(img_path)])
+                    yield event.chain_result([Plain(f"[DEBUG 第{idx+1}杯/{len(COCKTAILS)}] " + _render_special(ck, today) + "\n🍸 这杯酒属于："), At(qq=event.get_sender_id()), Plain(" (发送 换杯 重新抽取)"), MsgImage(img_path)])
                 else:
                     yield event.plain_result(f"编号超出范围（1-{len(COCKTAILS)}）")
                 return
@@ -1932,7 +1950,7 @@ class JrysPlugin(Star):
             _DEBUG_COUNTER = (_DEBUG_COUNTER + 1) % len(COCKTAILS)
             ck = COCKTAILS[_DEBUG_COUNTER]
             img_path = _ensure_cocktail_image(ck, today, debug=_DEBUG_COUNTER)
-            yield event.chain_result([Plain("[DEBUG 模式] " + _render_special(ck, today) + "\n🍸 这杯酒属于："), At(qq=event.get_sender_id()), MsgImage(img_path)])
+            yield event.chain_result([Plain("[DEBUG 模式] " + _render_special(ck, today) + "\n🍸 这杯酒属于："), At(qq=event.get_sender_id()), Plain(" (发送 换杯 重新抽取)"), MsgImage(img_path)])
             return
         # 防连发：同一群 4 秒内重复请求直接拦下，避免误触发 AI
         now = time.time()
@@ -1943,7 +1961,27 @@ class JrysPlugin(Star):
         uid = event.get_sender_id()
         ck = _today_cocktail(today, uid=uid)
         img_path = _ensure_cocktail_image(ck, today, uid=uid)
-        yield event.chain_result([Plain(_render_special(ck, today) + "\n🍸 这杯酒属于："), At(qq=event.get_sender_id()), MsgImage(img_path)])
+        yield event.chain_result([Plain(_render_special(ck, today) + "\n🍸 这杯酒属于："), At(qq=event.get_sender_id()), Plain(" (发送 换杯 重新抽取)"), MsgImage(img_path)])
+
+    async def special_reroll(self, event: AstrMessageEvent):
+        """换杯：重新抽取当前用户的今日特调；没抽过的直接替他抽一杯"""
+        gid = event.get_group_id()
+        if not gid:
+            yield event.plain_result("「换杯」是群功能，私聊不开放")
+            return
+        if not self._is_whitelisted(gid):
+            yield event.plain_result("本群未开通「今日特调」，无法换杯")
+            return
+        now = time.time()
+        if now - _SPECIAL_LAST.get(gid, 0) < 4:
+            yield event.plain_result("🍸 特调正在调制中，稍等片刻～")
+            return
+        _SPECIAL_LAST[gid] = now
+        today = _special_date()
+        uid = event.get_sender_id()
+        ck = _reroll_cocktail(today, uid)
+        img_path = _ensure_cocktail_image(ck, today, uid=uid)
+        yield event.chain_result([Plain("🔄 换杯成功，这是你的新特调\n" + _render_special(ck, today) + "\n🍸 这杯酒属于："), At(qq=event.get_sender_id()), Plain(" (发送 换杯 重新抽取)"), MsgImage(img_path)])
 
     # ---------- 特调菜单 ----------
     @filter_mod.command("特调菜单", alias={"酒单", "jrysmenu"})

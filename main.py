@@ -1754,7 +1754,7 @@ def _render_special(ck: dict, today: str) -> str:
         f"👅 口感：{ck['desc']}\n"
         f"━━━━━━━━━━━━━━\n"
         f"— 醚都城 · 威廉酒馆特供 —\n"
-        f"⚠️ 过量饮酒有害健康"
+        f"⚠️ 过量饮酒有害健康,未成年禁止饮酒"
     )
 
 
@@ -1764,8 +1764,7 @@ class JrysPlugin(Star):
         super().__init__(context)
         self._data = _load()
 
-    # ---------- 主命令 ----------
-    @filter_mod.command("今日运势", alias={"运势", "jrys", "jrysprpr"})
+    # ---------- 主命令（无前缀硬拦截分发，见 fortune_guard） ----------
     async def fortune(self, event: AstrMessageEvent):
         uid = event.get_sender_id()
         gid = event.get_group_id() or "私聊"
@@ -1881,12 +1880,16 @@ class JrysPlugin(Star):
         ]
         yield event.plain_result("\n".join(lines))
 
-    # ---------- 今日特调（白名单群专属） ----------
-    # 硬拦截：直接匹配「今日特调」/「z今日特调」，不经过命令前缀匹配，防止误触发 AI
+    # ---------- 今日运势 / 今日特调（无前缀硬拦截） ----------
+    # 直接匹配「今日运势」/「今日特调」及 z 前缀形式，不经过命令前缀匹配，防止误触发 AI
     @event_message_type(EventMessageType.ALL)
     async def special_guard(self, event: AstrMessageEvent):
         msg = event.message_str.strip()
         raw = msg[1:].strip() if msg.startswith("z") else msg
+        if raw.startswith("今日运势") or raw in ("运势", "jrys", "jrysprpr"):
+            async for r in self.fortune(event):
+                yield r
+            return
         if raw.startswith("今日特调"):
             async for r in self.special(event):
                 yield r

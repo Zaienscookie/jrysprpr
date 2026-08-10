@@ -1612,6 +1612,267 @@ COCKTAILS = [
         "layers": [(250,210,110), (250,190,85), (245,170,65)],
         "bg": [(34,24,8), (10,7,2)],
     },
+    {
+        "name": "无限循环",
+        "en": "Infinite Loop",
+        "base": "金酒",
+        "abv": 34,
+        "glass": "柯林斯杯",
+        "ingredients": ["金酒 40ml", "蓝橙利口酒 20ml", "柠檬汁 15ml", "苏打水 80ml", "薄荷叶 3片"],
+        "recipe": "金酒与蓝橙、柠檬汁摇匀，苏打水补满，薄荷叶轻拍后投入。",
+        "garnish": "薄荷",
+        "desc": "蓝色渐层首尾相接，喝一口就停不下来，像没写终止条件的循环。",
+        "layers": [(30, 90, 200), (60, 140, 230), (120, 190, 255)],
+        "bg": [(8, 14, 40), (2, 3, 10)]
+    },
+    {
+        "name": "递归栈",
+        "en": "Recursion Stack",
+        "base": "波本威士忌",
+        "abv": 42,
+        "glass": "古典杯",
+        "ingredients": ["波本威士忌 50ml", "蜂蜜利口酒 15ml", "苦精 2滴", "橙皮 1条"],
+        "recipe": "波本与蜂蜜利口酒搅拌，苦精滴入，橙皮喷香。",
+        "garnish": "橙皮",
+        "desc": "一层叠一层，越喝越深，直到栈溢出才想起该返回。",
+        "layers": [(150, 80, 30), (190, 110, 50), (230, 150, 80)],
+        "bg": [(26, 14, 6), (6, 3, 2)]
+    },
+    {
+        "name": "二进制风暴",
+        "en": "Binary Storm",
+        "base": "伏特加",
+        "abv": 40,
+        "glass": "马天尼杯",
+        "ingredients": ["伏特加 50ml", "黑加仑利口酒 15ml", "青柠汁 10ml", "七喜 30ml"],
+        "recipe": "伏特加与利口酒摇匀，七喜补满，杯沿点黑胡椒。",
+        "garnish": "黑胡椒",
+        "desc": "黑与白的边界在杯中碎裂，只有 0 和 1 的暴风雪。",
+        "layers": [(20, 20, 26), (90, 90, 100), (200, 200, 205)],
+        "bg": [(10, 10, 14), (3, 3, 5)]
+    },
+    {
+        "name": "哈希碰撞",
+        "en": "Hash Collision",
+        "base": "龙舌兰",
+        "abv": 36,
+        "glass": "岩石杯",
+        "ingredients": ["龙舌兰 45ml", "血橙汁 25ml", "蔓越莓汁 15ml", "橙皮苦精 1滴"],
+        "recipe": "龙舌兰与果汁摇匀倒入冰杯，滴入苦精形成云纹。",
+        "garnish": "橙片",
+        "desc": "两杯颜色看似相同，味道却南辕北辙，教科书级的碰撞。",
+        "layers": [(180, 50, 40), (220, 90, 60), (245, 150, 90)],
+        "bg": [(28, 8, 10), (5, 2, 3)]
+    },
+    {
+        "name": "图灵机",
+        "en": "Turing Machine",
+        "base": "黑麦威士忌",
+        "abv": 44,
+        "glass": "双耳杯",
+        "ingredients": ["黑麦威士忌 50ml", "黑樱桃利口酒 10ml", "苦精 3滴", "方糖 1块"],
+        "recipe": "方糖置于杯底，苦精浸润后倒入威士忌搅拌。",
+        "garnish": "黑樱桃",
+        "desc": "读写头在纸带上走完最后一格，停机时杯底只剩樱桃核。",
+        "layers": [(120, 70, 40), (170, 100, 60), (210, 140, 85)],
+        "bg": [(22, 12, 8), (5, 3, 2)]
+    },
+    {
+        "name": "内存泄漏",
+        "en": "Memory Leak",
+        "base": "朗姆酒",
+        "abv": 38,
+        "glass": "高球杯",
+        "ingredients": ["白朗姆 45ml", "椰子利口酒 15ml", "菠萝汁 40ml", "青柠汁 10ml", "气泡水 50ml"],
+        "recipe": "朗姆与椰香、菠萝汁摇匀，气泡水补满，青柠角挤入。",
+        "garnish": "青柠角",
+        "desc": "甜得令人上瘾，却一点点耗光你的清醒额度，直到进程崩溃。",
+        "layers": [(200, 220, 180), (160, 190, 140), (110, 150, 100)],
+        "bg": [(14, 20, 10), (4, 6, 3)]
+    },
+    {
+        "name": "死锁",
+        "en": "Deadlock",
+        "base": "黑麦威士忌",
+        "abv": 45,
+        "glass": "岩石杯",
+        "ingredients": ["黑麦威士忌 50ml", "咖啡利口酒 20ml", "冰球 1颗"],
+        "recipe": "威士忌与咖啡利口酒倒入杯内，冰球居中，静置不动。",
+        "garnish": "咖啡豆",
+        "desc": "两杯酒互相等待对方先被喝掉，结果谁也没动。",
+        "layers": [(70, 45, 25), (100, 65, 35), (140, 90, 50)],
+        "bg": [(16, 10, 6), (4, 3, 2)]
+    },
+    {
+        "name": "二叉搜索树",
+        "en": "Binary Search Tree",
+        "base": "金酒",
+        "abv": 33,
+        "glass": "马天尼杯",
+        "ingredients": ["金酒 40ml", "接骨木花利口酒 15ml", "青柠汁 15ml", "薄荷糖浆 5ml"],
+        "recipe": "金酒与利口酒、青柠汁摇匀，薄荷糖浆沿杯壁缓缓注入分层。",
+        "garnish": "薄荷叶",
+        "desc": "每次查找都砍掉一半选项，命中时刚好微醺。",
+        "layers": [(90, 160, 90), (140, 200, 130), (200, 235, 180)],
+        "bg": [(10, 20, 12), (3, 6, 4)]
+    },
+    {
+        "name": "数据包丢失",
+        "en": "Packet Loss",
+        "base": "伏特加",
+        "abv": 39,
+        "glass": "柯林斯杯",
+        "ingredients": ["伏特加 45ml", "柚子汁 30ml", "汤力水 90ml", "盐 1撮"],
+        "recipe": "伏特加与柚子汁摇匀，汤力水补满，撒盐增涩。",
+        "garnish": "柚子皮",
+        "desc": "第一口还完整，第二口开始断断续续，重传三次仍是涩味。",
+        "layers": [(240, 220, 150), (230, 190, 110), (210, 150, 70)],
+        "bg": [(22, 18, 8), (6, 5, 2)]
+    },
+    {
+        "name": "溢出",
+        "en": "Overfl0w",
+        "base": "苦艾酒",
+        "abv": 52,
+        "glass": "苦艾杯",
+        "ingredients": ["苦艾酒 40ml", "糖块 1块", "冰水 60ml", "八角 1颗"],
+        "recipe": "糖块置于漏勺上，冰水缓缓滴落稀释苦艾酒。",
+        "garnish": "八角",
+        "desc": "数字越过边界的那一刻，杯沿漫出青色的光。",
+        "layers": [(80, 160, 90), (60, 130, 80), (40, 100, 60)],
+        "bg": [(8, 20, 12), (3, 6, 4)]
+    },
+    {
+        "name": "双螺旋",
+        "en": "Double Helix",
+        "base": "金酒",
+        "abv": 31,
+        "glass": "高脚杯",
+        "ingredients": ["金酒 40ml", "蓝橙利口酒 15ml", "白可可利口酒 10ml", "奶油 20ml"],
+        "recipe": "蓝橙层与奶油层沿杯壁交替注入，形成螺旋纹路。",
+        "garnish": "橙皮卷",
+        "desc": "两条链交缠而上，解开它需要一杯的时间。",
+        "layers": [(40, 90, 180), (220, 225, 230), (60, 120, 200)],
+        "bg": [(10, 16, 40), (3, 4, 10)]
+    },
+    {
+        "name": "ATP 脉冲",
+        "en": "ATP Surge",
+        "base": "龙舌兰",
+        "abv": 37,
+        "glass": "子弹杯",
+        "ingredients": ["龙舌兰 40ml", "橙汁 20ml", "红石榴糖浆 5ml", "辣椒粉 1撮"],
+        "recipe": "龙舌兰与橙汁摇匀，石榴糖浆沉底，杯口沾辣椒粉。",
+        "garnish": "辣椒粉",
+        "desc": "一口下去三磷酸键断裂，能量直接拉满。",
+        "layers": [(240, 140, 40), (250, 190, 90), (120, 40, 20)],
+        "bg": [(26, 10, 6), (6, 2, 2)]
+    },
+    {
+        "name": "酶促反应",
+        "en": "Enzyme Cascade",
+        "base": "伏特加",
+        "abv": 35,
+        "glass": "烧杯杯",
+        "ingredients": ["伏特加 45ml", "青柠汁 20ml", "姜汁啤酒 60ml", "薄荷叶 2片"],
+        "recipe": "伏特加与青柠汁摇匀，姜汁啤酒补满，薄荷叶作催化剂。",
+        "garnish": "薄荷叶",
+        "desc": "每一步反应都加速，最后一口的辣度指数级上升。",
+        "layers": [(230, 220, 120), (200, 190, 90), (160, 150, 60)],
+        "bg": [(20, 18, 6), (6, 5, 2)]
+    },
+    {
+        "name": "线粒体矩阵",
+        "en": "Mitochondrial Matrix",
+        "base": "朗姆酒",
+        "abv": 40,
+        "glass": "古典杯",
+        "ingredients": ["黑朗姆 50ml", "咖啡利口酒 15ml", "可可利口酒 10ml", "肉豆蔻 1撮"],
+        "recipe": "朗姆与两种利口酒搅拌，肉豆蔻撒面。",
+        "garnish": "咖啡豆",
+        "desc": "细胞发电厂浓缩成一杯，喝下去全是暗能量。",
+        "layers": [(60, 40, 25), (90, 60, 35), (130, 85, 45)],
+        "bg": [(14, 10, 6), (4, 3, 2)]
+    },
+    {
+        "name": "PCR 扩增",
+        "en": "PCR Amplify",
+        "base": "金酒",
+        "abv": 30,
+        "glass": "试管杯",
+        "ingredients": ["金酒 35ml", "柠檬汁 15ml", "荔枝利口酒 15ml", "汤力水 80ml"],
+        "recipe": "金酒与利口酒摇匀，汤力水补满，气泡即每个循环的扩增。",
+        "garnish": "荔枝",
+        "desc": "一个模板，三十个循环，杯中气泡翻倍翻倍再翻倍。",
+        "layers": [(220, 230, 235), (190, 205, 215), (150, 170, 185)],
+        "bg": [(18, 22, 26), (5, 6, 8)]
+    },
+    {
+        "name": "血红素",
+        "en": "Heme",
+        "base": "波本威士忌",
+        "abv": 41,
+        "glass": "岩石杯",
+        "ingredients": ["波本威士忌 50ml", "红石榴糖浆 8ml", "黑莓利口酒 10ml", "血橙汁 15ml"],
+        "recipe": "波本与利口酒搅拌，石榴糖浆沉底模拟血色渐层。",
+        "garnish": "黑莓",
+        "desc": "铁卟啉的暗红在杯中沉降，像心脏泵出的最后一滴。",
+        "layers": [(140, 20, 25), (180, 40, 40), (220, 90, 60)],
+        "bg": [(24, 6, 8), (6, 2, 2)]
+    },
+    {
+        "name": "神经递质",
+        "en": "Neurotransmitter",
+        "base": "伏特加",
+        "abv": 38,
+        "glass": "马天尼杯",
+        "ingredients": ["伏特加 45ml", "接骨木花利口酒 12ml", "柠檬汁 10ml", "苏打水 20ml"],
+        "recipe": "伏特加与利口酒、柠檬汁摇匀，苏打水轻点起泡。",
+        "garnish": "柠檬片",
+        "desc": "多巴胺在突触间隙放电，一杯下肚信号满格。",
+        "layers": [(200, 180, 90), (230, 210, 140), (250, 240, 190)],
+        "bg": [(22, 18, 8), (6, 5, 2)]
+    },
+    {
+        "name": "端粒",
+        "en": "Telomere",
+        "base": "白兰地",
+        "abv": 42,
+        "glass": "白兰地杯",
+        "ingredients": ["白兰地 50ml", "蜂蜜利口酒 10ml", "杏仁利口酒 8ml", "藏红花 2根"],
+        "recipe": "白兰地与利口酒搅拌，藏红花丝浮面。",
+        "garnish": "藏红花",
+        "desc": "每喝一杯就短一截，但回味却比上一杯更绵长。",
+        "layers": [(180, 120, 50), (200, 145, 70), (230, 175, 100)],
+        "bg": [(24, 16, 8), (6, 4, 2)]
+    },
+    {
+        "name": "CRISPR 剪刀",
+        "en": "CRISPR Scissors",
+        "base": "龙舌兰",
+        "abv": 39,
+        "glass": "岩石杯",
+        "ingredients": ["龙舌兰 45ml", "青柠汁 20ml", "黄椒糖浆 8ml", "黄瓜 2片"],
+        "recipe": "龙舌兰与青柠汁、黄椒糖浆摇匀，黄瓜片作精准切口。",
+        "garnish": "黄瓜片",
+        "desc": "精准剪切每一段杂味，留下干净利落的辛辣。",
+        "layers": [(180, 200, 120), (210, 220, 150), (240, 240, 190)],
+        "bg": [(18, 22, 10), (5, 6, 3)]
+    },
+    {
+        "name": "细胞凋亡",
+        "en": "Apoptosis",
+        "base": "黑朗姆",
+        "abv": 46,
+        "glass": "古典杯",
+        "ingredients": ["黑朗姆 50ml", "烟熏威士忌 10ml", "苦精 3滴", "烟熏迷迭香 1枝"],
+        "recipe": "黑朗姆与烟熏威士忌搅拌，苦精滴入，迷迭香点燃熏杯。",
+        "garnish": "迷迭香",
+        "desc": "程序性死亡也是一场体面的告别，余烬里带着甜。",
+        "layers": [(50, 35, 25), (75, 52, 35), (110, 75, 50)],
+        "bg": [(12, 8, 5), (3, 2, 2)]
+    }
+
 ]
 
 
@@ -1704,18 +1965,28 @@ def _save_special_records(records: dict) -> None:
         logger.error(f"jrysprpr: 保存特调记录失败: {e}")
 
 
-def _reroll_cocktail(today: str, uid: str) -> dict:
-    """换杯：重新抽取当前用户今天的特调，保证与已抽的不重复"""
+def _reroll_cocktail(today: str, uid: str):
+    """换杯：重新抽取当前用户今天的特调，与已抽不重复；每日限3次。
+    返回 (ck, 剩余次数)；超限时返回 (None, 0)"""
     records = _load_special_records()
-    old = records.get(str(uid), {})
-    old_idx = old.get("idx") if old.get("date") == today else None
+    rec = records.get(str(uid), {})
+    if rec.get("date") != today:
+        rec = {"date": today, "idx": rec.get("idx"), "rerolls": 0}
+        records[str(uid)] = rec
+    if rec.get("rerolls", 0) >= 3:
+        _save_special_records(records)
+        return None, 0
+    old_idx = rec.get("idx") if rec.get("date") == today else None
     rng = random.Random(f"jrys:reroll:{uid}:{today}:{time.time()}")
     idx = rng.randrange(len(COCKTAILS))
     if idx == old_idx:
         idx = (idx + 1) % len(COCKTAILS)
-    records[str(uid)] = {"date": today, "idx": idx}
+    rec["date"] = today
+    rec["idx"] = idx
+    rec["rerolls"] = rec.get("rerolls", 0) + 1
+    records[str(uid)] = rec
     _save_special_records(records)
-    return COCKTAILS[idx]
+    return COCKTAILS[idx], 3 - rec["rerolls"]
 
 
 def _today_cocktail(today: str, uid: str = "") -> dict:
@@ -1732,7 +2003,7 @@ def _today_cocktail(today: str, uid: str = "") -> dict:
     idx = rng.randrange(len(COCKTAILS))
     if rec and rec.get("date") != today and rec.get("idx") == idx:
         idx = (idx + 1) % len(COCKTAILS)
-    records[str(uid)] = {"date": today, "idx": idx}
+    records[str(uid)] = {"date": today, "idx": idx, "rerolls": 0}
     # 顺手清理 7 天前的旧记录，防止文件无限增长
     keep = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
     stale = [u for u, r in records.items() if isinstance(r, dict) and r.get("date", "") < keep]
@@ -1772,7 +2043,7 @@ def _render_special(ck: dict, today: str) -> str:
     )
 
 
-@register("jrysprpr", "扎恩斯", "今日运势：多群同步/0点刷新/统计/排行/转运，数据持久化", "1.6.5")
+@register("jrysprpr", "扎恩斯", "今日运势：多群同步/0点刷新/统计/排行/转运，数据持久化", "1.6.7")
 class JrysPlugin(Star):
     def __init__(self, context: Context):
         super().__init__(context)
@@ -1979,9 +2250,12 @@ class JrysPlugin(Star):
         _SPECIAL_LAST[gid] = now
         today = _special_date()
         uid = event.get_sender_id()
-        ck = _reroll_cocktail(today, uid)
+        ck, remain = _reroll_cocktail(today, uid)
+        if ck is None:
+            yield event.plain_result("🍸 今天的换杯次数用完了（每日限3次），明天再来吧")
+            return
         img_path = _ensure_cocktail_image(ck, today, uid=uid)
-        yield event.chain_result([Plain("🔄 换杯成功，这是你的新特调\n" + _render_special(ck, today) + "\n🍸 这杯酒属于："), At(qq=event.get_sender_id()), Plain(" (发送 换杯 重新抽取)"), MsgImage(img_path)])
+        yield event.chain_result([Plain(f"🔄 换杯成功（今日剩余 {remain} 次）\n" + _render_special(ck, today) + "\n🍸 这杯酒属于："), At(qq=event.get_sender_id()), Plain(" (发送 换杯 重新抽取)"), MsgImage(img_path)])
 
     # ---------- 特调菜单 ----------
     @filter_mod.command("特调菜单", alias={"酒单", "jrysmenu"})

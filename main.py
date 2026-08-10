@@ -1876,6 +1876,7 @@ class JrysPlugin(Star):
             "运势统计 - 近30天个人统计",
             "运势排行 - 本群今日TOP3",
             "今日特调 - 白名单群专属调酒（含配方与图）",
+            "特调白名单 - 白名单管理：on/off 开关，add 群号 加白，del 群号 撤白",
             "特调菜单 - 查看特调酒单（白名单群）",
         ]
         yield event.plain_result("\n".join(lines))
@@ -1892,6 +1893,10 @@ class JrysPlugin(Star):
             return
         if raw.startswith("今日特调"):
             async for r in self.special(event):
+                yield r
+            return
+        if raw.startswith("特调白名单") or raw == "jrys_wl":
+            async for r in self.special_whitelist(event):
                 yield r
         return
 
@@ -1956,8 +1961,7 @@ class JrysPlugin(Star):
         lines += ["", "发送「今日特调」抽取今日专属一杯（每人不同，每日5点刷新）"]
         yield event.plain_result("\n".join(lines))
 
-    # ---------- 白名单管理 ----------
-    @filter_mod.command("特调白名单", alias={"jrys_wl"})
+    # ---------- 白名单管理（无前缀硬拦截分发，见 special_guard） ----------
     async def special_whitelist(self, event: AstrMessageEvent):
         parts = event.message_str.split()
         if len(parts) == 1:
